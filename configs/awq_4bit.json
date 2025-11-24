@@ -1,0 +1,32 @@
+{
+  "name": "AWQ 4-bit Configuration",
+  "description": "4-bit quantization using AWQ. Lowest memory usage, potential speed improvement.",
+  "environment": {
+    "MODEL_NAME": "codefactory4791/intent-classification-qwen",
+    "MAX_NUM_SEQS": "16",
+    "MAX_MODEL_LEN": "512",
+    "QUANTIZATION": "awq",
+    "DTYPE": "auto",
+    "GPU_MEMORY_UTILIZATION": "0.85",
+    "TRUST_REMOTE_CODE": "true",
+    "ENFORCE_EAGER": "true"
+  },
+  "gpu": {
+    "type": "A100-SXM4-40GB",
+    "min_workers": 0,
+    "max_workers": 1
+  },
+  "expected_performance": {
+    "vram_usage_gb": "~1.5-2",
+    "latency_p95_ms": "~60-100",
+    "throughput_samples_s": "~100-120",
+    "accuracy_degradation": "~1-2%"
+  },
+  "notes": [
+    "Requires pre-quantized model or first-run quantization",
+    "May have longer cold start time for initial quantization",
+    "Generally faster inference than bitsandbytes"
+  ],
+  "use_case": "High-throughput deployments where slight accuracy trade-off is acceptable. Ideal for cost-sensitive production."
+}
+

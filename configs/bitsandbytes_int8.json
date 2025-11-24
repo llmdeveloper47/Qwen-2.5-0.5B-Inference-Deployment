@@ -1,0 +1,27 @@
+{
+  "name": "BitsAndBytes INT8 Configuration",
+  "description": "8-bit quantization using bitsandbytes. Good balance of speed, memory, and accuracy.",
+  "environment": {
+    "MODEL_NAME": "codefactory4791/intent-classification-qwen",
+    "MAX_NUM_SEQS": "16",
+    "MAX_MODEL_LEN": "512",
+    "QUANTIZATION": "bitsandbytes",
+    "DTYPE": "auto",
+    "GPU_MEMORY_UTILIZATION": "0.90",
+    "TRUST_REMOTE_CODE": "true",
+    "ENFORCE_EAGER": "true"
+  },
+  "gpu": {
+    "type": "A100-SXM4-40GB",
+    "min_workers": 0,
+    "max_workers": 1
+  },
+  "expected_performance": {
+    "vram_usage_gb": "~2-2.5",
+    "latency_p95_ms": "~70-110",
+    "throughput_samples_s": "~80-95",
+    "accuracy_degradation": "<1%"
+  },
+  "use_case": "Memory-constrained deployments. Enables running on smaller GPUs or higher concurrency."
+}
+

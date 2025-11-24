@@ -1,0 +1,26 @@
+{
+  "name": "FP16 Baseline Configuration",
+  "description": "Standard FP16 precision without quantization. Best accuracy, highest memory usage.",
+  "environment": {
+    "MODEL_NAME": "codefactory4791/intent-classification-qwen",
+    "MAX_NUM_SEQS": "16",
+    "MAX_MODEL_LEN": "512",
+    "QUANTIZATION": "none",
+    "DTYPE": "auto",
+    "GPU_MEMORY_UTILIZATION": "0.95",
+    "TRUST_REMOTE_CODE": "true",
+    "ENFORCE_EAGER": "true"
+  },
+  "gpu": {
+    "type": "A100-SXM4-40GB",
+    "min_workers": 0,
+    "max_workers": 1
+  },
+  "expected_performance": {
+    "vram_usage_gb": "~3-4",
+    "latency_p95_ms": "~80-120",
+    "throughput_samples_s": "~90-100"
+  },
+  "use_case": "Production deployment where accuracy is critical and memory is not a constraint."
+}
+

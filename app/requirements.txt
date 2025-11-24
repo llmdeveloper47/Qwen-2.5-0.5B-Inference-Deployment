@@ -1,0 +1,6 @@
+# RunPod serverless SDK
+runpod>=1.6.0
+
+# Additional dependencies not in base image
+python-json-logger>=2.0.7
+

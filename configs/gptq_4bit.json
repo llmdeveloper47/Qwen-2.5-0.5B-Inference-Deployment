@@ -1,0 +1,32 @@
+{
+  "name": "GPTQ 4-bit Configuration",
+  "description": "4-bit quantization using GPTQ. Alternative to AWQ with similar benefits.",
+  "environment": {
+    "MODEL_NAME": "codefactory4791/intent-classification-qwen",
+    "MAX_NUM_SEQS": "16",
+    "MAX_MODEL_LEN": "512",
+    "QUANTIZATION": "gptq",
+    "DTYPE": "auto",
+    "GPU_MEMORY_UTILIZATION": "0.85",
+    "TRUST_REMOTE_CODE": "true",
+    "ENFORCE_EAGER": "true"
+  },
+  "gpu": {
+    "type": "A100-SXM4-40GB",
+    "min_workers": 0,
+    "max_workers": 1
+  },
+  "expected_performance": {
+    "vram_usage_gb": "~1.5-2",
+    "latency_p95_ms": "~65-105",
+    "throughput_samples_s": "~95-115",
+    "accuracy_degradation": "~1-2%"
+  },
+  "notes": [
+    "Requires pre-quantized model",
+    "Different quantization approach than AWQ",
+    "May perform better or worse than AWQ depending on model architecture"
+  ],
+  "use_case": "Alternative to AWQ for memory-efficient, high-throughput deployments."
+}
+
