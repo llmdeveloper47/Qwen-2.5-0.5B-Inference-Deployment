@@ -1,4 +1,4 @@
-# Qwen 2.5-0.5B Intent Classification on RunPod with vLLM
+# Qwen 3-0.6B Intent Classification on RunPod with vLLM
 
 Complete deployment pipeline for intent classification model testing quantization methods and batch sizes on RunPod A100 GPU.
 
