@@ -1,4 +1,4 @@
-# Qwen 3-0.6B Intent Classification on RunPod with vLLM
+# Qwen 2.5-0.5B Intent Classification on RunPod with vLLM
 
 Complete deployment pipeline for intent classification model testing quantization methods and batch sizes on RunPod A100 GPU.
 
@@ -13,7 +13,7 @@ This repository provides an end-to-end solution for:
 5. Identifying optimal deployment settings for production use
 
 **Model Details:**
-- Base: Qwen 3-0.6B-Instruct
+- Base: Qwen 2.5-0.5B-Instruct
 - Task: Intent classification (23 categories)
 - Accuracy: 92% on test set
 - Model URL: https://huggingface.co/codefactory4791/intent-classification-qwen
@@ -66,7 +66,7 @@ This repository provides an end-to-end solution for:
    - Save the key securely
 
 **GitHub Account:**
-1. Fork or clone repository: https://github.com/llmdeveloper47/Qwen-Qwen2.5-0.5B-Deployment-vLLM
+1. Fork or clone repository: https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Deployment-vLLM
 2. Generate Personal Access Token:
    - Settings → Developer settings → Personal access tokens
    - Create token with `repo` and `write:packages` scopes
@@ -117,8 +117,8 @@ brew install python@3.10 git
 ### Clone Repository
 
 ```bash
-git clone https://github.com/llmdeveloper47/Qwen-Qwen2.5-0.5B-Deployment-vLLM.git
-cd Qwen-Qwen2.5-0.5B-Deployment-vLLM
+git clone https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Deployment-vLLM.git
+cd Qwen-2.5-0.5B-Deployment-vLLM
 ```
 
 ### Create Virtual Environment
@@ -329,7 +329,7 @@ This takes 10-15 minutes as it pre-downloads the model.
 
 ```bash
 docker tag intent-classification-vllm:latest \
-  ghcr.io/llmdeveloper47/qwen-qwen2.5-0.5b-deployment-vllm:latest
+  ghcr.io/llmdeveloper47/qwen-2.5-0.5b-deployment-vllm:latest
 ```
 
 ### Push to Registry
@@ -339,7 +339,7 @@ docker tag intent-classification-vllm:latest \
 echo $GITHUB_TOKEN | docker login ghcr.io -u llmdeveloper47 --password-stdin
 
 # Push image
-docker push ghcr.io/llmdeveloper47/qwen-qwen2.5-0.5b-deployment-vllm:latest
+docker push ghcr.io/llmdeveloper47/qwen-2.5-0.5b-deployment-vllm:latest
 ```
 
 **Alternative: Use Makefile**
@@ -361,7 +361,7 @@ make build-push
    - GPU: Select "A100-SXM4-40GB"
    
 3. **Container Configuration:**
-   - Container Image: `ghcr.io/llmdeveloper47/qwen-qwen2.5-0.5b-deployment-vllm:latest`
+   - Container Image: `ghcr.io/llmdeveloper47/qwen-2.5-0.5b-deployment-vllm:latest`
    - Container Disk: 20 GB
    - Volume Disk: 0 GB
 
@@ -718,7 +718,7 @@ The notebook includes:
 ## Project Structure
 
 ```
-Qwen-Qwen2.5-0.5B-Deployment-vLLM/
+Qwen-2.5-0.5B-Deployment-vLLM/
 ├── README.md                          # This file
 ├── CONTRIBUTING.md                    # Contribution guidelines
 ├── requirements.txt                   # Python dependencies
@@ -1245,7 +1245,7 @@ Run experiments to find optimal for your specific latency requirements.
 ## Support and Resources
 
 ### Project Resources
-- **Repository:** https://github.com/llmdeveloper47/Qwen-Qwen2.5-0.5B-Deployment-vLLM
+- **Repository:** https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Deployment-vLLM
 - **Model Card:** https://huggingface.co/codefactory4791/intent-classification-qwen
 - **Dataset:** https://huggingface.co/datasets/codefactory4791/amazon_test
 
@@ -1259,7 +1259,7 @@ Run experiments to find optimal for your specific latency requirements.
 
 1. Check the Troubleshooting section above
 2. Review error messages in RunPod logs
-3. Open an issue: https://github.com/llmdeveloper47/Qwen-Qwen2.5-0.5B-Deployment-vLLM/issues
+3. Open an issue: https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Deployment-vLLM/issues
 4. Ask on RunPod Discord
 
 ---
@@ -1284,7 +1284,7 @@ MIT License - see LICENSE file for details.
   author={llmdeveloper47},
   year={2025},
   publisher={GitHub},
-  url={https://github.com/llmdeveloper47/Qwen-Qwen2.5-0.5B-Deployment-vLLM}
+  url={https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Deployment-vLLM}
 }
 ```
 
