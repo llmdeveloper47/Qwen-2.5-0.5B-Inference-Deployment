@@ -166,6 +166,7 @@ def initialize_model(model_id: str, quantization: str = "none",
             model = AutoModelForSequenceClassification.from_pretrained(
                 model_id,
                 torch_dtype=torch.float16,
+                low_cpu_mem_usage=True,
                 trust_remote_code=True
             )
             model = model.to(device)
