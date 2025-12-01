@@ -68,7 +68,15 @@ pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https
 # Verify installation
 python -c "import torch; print(f'PyTorch: {torch.__version__}')"
 
-python scripts/benchmark_local.py --quantization none --batch-sizes 1,8,16 --num-samples 100
+# to sample sequences by length, use below command
+python scripts/benchmark_local.py --quantization none --batch-sizes 1,8,16,64 --num-samples 1000
+
+# to sample sequences randomly, use below command
+python scripts/benchmark_local.py \
+  --quantization none \
+  --batch-sizes 1,8,16,32 \
+  --num-samples 1000 \
+  --no-balance-lengths
 ```
 
 **Step 6:** Test handler (Optional)
