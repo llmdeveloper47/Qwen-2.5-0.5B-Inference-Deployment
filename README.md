@@ -217,6 +217,16 @@ pip install -r requirements.txt --ignore-installed blinker
 ## Step 4 (Optional): Local Benchmarking
 
 Test different quantization methods local GPU / Runpod before deploying:
+```bash
+# Uninstall current torch and vllm
+pip uninstall vllm torch torchvision torchaudio -y
+
+# Install stable PyTorch 2.4.0
+pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121
+
+# Reinstall vLLM (it will work with PyTorch 2.4.0)
+pip install vllm==0.6.2 --no-cache-dir
+```
 
 ### Test FP16 Baseline
 
