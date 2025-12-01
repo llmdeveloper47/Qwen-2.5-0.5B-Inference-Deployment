@@ -10,8 +10,8 @@ import json
 import argparse
 from pathlib import Path
 
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoConfig
+from huggingface_hub import snapshot_download
 
 
 def download_model(model_id: str, output_dir: str = "./models") -> dict:
@@ -54,36 +54,41 @@ def download_model(model_id: str, output_dir: str = "./models") -> dict:
         tokenizer.save_pretrained(output_dir)
         print(f"  ✓ Tokenizer saved to: {output_dir}")
         
-        # Download model
-        print("\n[3/4] Downloading model...")
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_id,
+        # Download model files (without loading into memory)
+        print("\n[3/4] Downloading model files...")
+        snapshot_download(
+            repo_id=model_id,
+            local_dir=output_dir,
+            local_dir_use_symlinks=False,
             trust_remote_code=True
         )
+        print(f"  ✓ Model files downloaded to: {output_dir}")
         
-        # Set pad token id in model config
-        if model.config.pad_token_id is None:
-            model.config.pad_token_id = tokenizer.pad_token_id
+        # Load config only (lightweight)
+        config = AutoConfig.from_pretrained(output_dir, trust_remote_code=True)
         
-        print(f"  ✓ Model downloaded successfully")
-        print(f"  - Model type: {model.config.model_type}")
-        print(f"  - Number of parameters: {model.num_parameters():,}")
-        print(f"  - Number of labels: {model.config.num_labels}")
+        # Set pad token id in config if needed
+        if config.pad_token_id is None:
+            config.pad_token_id = tokenizer.pad_token_id
+            config.save_pretrained(output_dir)
         
-        # Save model to disk
-        print(f"\n  Saving model to disk...")
-        model.save_pretrained(output_dir)
-        print(f"  ✓ Model saved to: {output_dir}")
+        print(f"  ✓ Model configuration loaded")
+        print(f"  - Model type: {config.model_type}")
+        print(f"  - Number of labels: {config.num_labels}")
         
-        # Get model size
+        # Calculate model size from files
         model_size_bytes = sum(
-            p.numel() * p.element_size() for p in model.parameters()
+            f.stat().st_size for f in Path(output_dir).rglob("*.safetensors")
         )
+        if model_size_bytes == 0:
+            model_size_bytes = sum(
+                f.stat().st_size for f in Path(output_dir).rglob("*.bin")
+            )
         model_size_mb = model_size_bytes / (1024 * 1024)
         
         # Extract label mappings
-        id2label = model.config.id2label
-        label2id = model.config.label2id
+        id2label = config.id2label
+        label2id = config.label2id
         
         print(f"\n[4/4] Verifying configuration...")
         print(f"  ✓ Model size: {model_size_mb:.2f} MB")
@@ -98,17 +103,14 @@ def download_model(model_id: str, output_dir: str = "./models") -> dict:
         # Save model info
         model_info = {
             "model_id": model_id,
-            "model_type": model.config.model_type,
-            "num_parameters": model.num_parameters(),
+            "model_type": config.model_type,
             "model_size_mb": round(model_size_mb, 2),
-            "num_labels": model.config.num_labels,
+            "num_labels": config.num_labels,
             "id2label": id2label,
             "label2id": label2id,
             "vocab_size": tokenizer.vocab_size,
-            "max_position_embeddings": getattr(
-                model.config, "max_position_embeddings", None
-            ),
-            "hidden_size": getattr(model.config, "hidden_size", None),
+            "max_position_embeddings": getattr(config, "max_position_embeddings", None),
+            "hidden_size": getattr(config, "hidden_size", None),
         }
         
         output_path = os.path.join(output_dir, "model_info.json")
@@ -117,40 +119,10 @@ def download_model(model_id: str, output_dir: str = "./models") -> dict:
         
         print(f"\n  ✓ Model info saved to: {output_path}")
         
-        # Test model (optional)
-        print(f"\n[Testing] Running quick inference test...")
-        try:
-            test_text = """Beautiful design. Twelve rolls of the most beautiful washi tape you could own is sold right here on Amazon and by Allydrew. The colors are gorgeous, the tape is easy to lay down and lift up if you need to readjust it, and it tears easy which makes it a joy to work with. I have a humongous washi collection and Allydrew is some of the best I have found. The patterns are beautiful and unlike any I have found at the craft stores. They are 10 yard rolls, which is a great amount per roll. If you break down the price to a per roll price it breaks down to around $1.60 per roll. That is a really great price.
-
-This retails for $18.99 per twelve roll pack but I received it at the discounted amount of $9.30 in exchange for my honest review.
-
-I review all the Allydrew washi I get from AMZ on my YouTube channel (sprngbrd *) if you would like to see each individual roll that way."""
-            expected_label = "arts-crafts-and-sewing_crafting"
-            inputs = tokenizer(test_text, return_tensors="pt", truncation=True, max_length=512)
-            
-            with torch.no_grad():
-                outputs = model(**inputs)
-                logits = outputs.logits
-                predicted_class = torch.argmax(logits, dim=-1).item()
-                confidence = torch.softmax(logits, dim=-1).max().item()
-            
-            # Get label name, handling potential missing keys
-            label_name = id2label.get(str(predicted_class), f"UNKNOWN_CLASS_{predicted_class}")
-            
-            print(f"  ✓ Test inference successful")
-            print(f"    Input: '{test_text[:80]}...'")
-            print(f"    Expected label: {expected_label}")
-            print(f"    Predicted class: {predicted_class} ({label_name})")
-            print(f"    Confidence: {confidence:.4f}")
-            
-            # Check if prediction matches expected
-            if label_name == expected_label:
-                print(f"    ✓ Prediction matches expected label!")
-            else:
-                print(f"    ⚠ Prediction differs from expected (this is okay for initial test)")
-        except Exception as test_error:
-            print(f"  ⚠ Warning: Test inference failed ({str(test_error)})")
-            print(f"    This is non-critical - model files are downloaded correctly")
+        # Skip inference test to save memory
+        print(f"\n[Info] Skipping inference test to conserve memory")
+        print(f"  Model files downloaded successfully and ready to use")
+        print(f"  Test inference will be performed when loading the model for benchmarks")
         
         print("\n" + "=" * 70)
         print("✓ Model download and verification complete!")
