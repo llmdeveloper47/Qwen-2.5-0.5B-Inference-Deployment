@@ -14,8 +14,9 @@ from typing import List, Dict, Any
 
 import numpy as np
 import pandas as pd
+import torch
 from datasets import load_dataset
-from vllm import LLM
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
 def load_test_data(dataset_name: str = "codefactory4791/amazon_test", 
@@ -97,41 +98,73 @@ def load_test_data(dataset_name: str = "codefactory4791/amazon_test",
     return prompts, true_labels, id2label
 
 
-def initialize_model(model_id: str, quantization: str = "none") -> LLM:
-    """Initialize vLLM model with specified quantization."""
-    print(f"\nInitializing vLLM model...")
+def initialize_model(model_id: str, quantization: str = "none") -> tuple:
+    """Initialize model and tokenizer with specified quantization."""
+    print(f"\nInitializing model...")
     print(f"  Model: {model_id}")
     print(f"  Quantization: {quantization}")
     
     start = time.perf_counter()
     
     try:
-        # Handle quantization parameter
-        quant_param = None if quantization == "none" else quantization
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
         
-        llm = LLM(
-            model=model_id,
-            task="classify",
-            max_num_seqs=32,  # Will vary in batching tests
-            max_model_len=512,
-            quantization=quant_param,
-            dtype="auto",
-            gpu_memory_utilization=0.95,
-            trust_remote_code=True,
-            enforce_eager=True,
-        )
+        # Determine device
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Load model with quantization
+        if quantization == "bitsandbytes":
+            from transformers import BitsAndBytesConfig
+            quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_id,
+                quantization_config=quantization_config,
+                device_map="auto",
+                trust_remote_code=True
+            )
+        elif quantization == "awq":
+            from transformers import AwqConfig
+            quantization_config = AwqConfig(bits=4)
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_id,
+                quantization_config=quantization_config,
+                device_map="auto",
+                trust_remote_code=True
+            )
+        elif quantization == "gptq":
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_id,
+                device_map="auto",
+                trust_remote_code=True
+            )
+        else:
+            # No quantization
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16,
+                trust_remote_code=True
+            )
+            model = model.to(device)
+        
+        model.eval()
         
         load_time = time.perf_counter() - start
-        print(f"  ✓ Model loaded in {load_time:.2f}s")
+        print(f"  Model loaded in {load_time:.2f}s")
+        print(f"  Device: {device}")
         
-        return llm
+        return model, tokenizer, device
         
     except Exception as e:
-        print(f"  ✗ Failed to load model: {str(e)}")
+        print(f"  Failed to load model: {str(e)}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
-def benchmark_batch_size(llm: LLM, prompts: List[str], batch_size: int) -> Dict[str, float]:
+def benchmark_batch_size(model, tokenizer, device, prompts: List[str], batch_size: int) -> Dict[str, float]:
     """Run benchmark for a specific batch size."""
     # Split prompts into batches
     batches = [prompts[i:i+batch_size] for i in range(0, len(prompts), batch_size)]
@@ -144,8 +177,18 @@ def benchmark_batch_size(llm: LLM, prompts: List[str], batch_size: int) -> Dict[
     for batch in batches:
         start_batch = time.perf_counter()
         
-        # Run classification
-        outputs = llm.classify(batch)
+        # Tokenize batch
+        inputs = tokenizer(
+            batch,
+            padding=True,
+            truncation=True,
+            max_length=512,
+            return_tensors="pt"
+        ).to(device)
+        
+        # Run inference
+        with torch.no_grad():
+            outputs = model(**inputs)
         
         batch_latency = (time.perf_counter() - start_batch) * 1000  # Convert to ms
         latencies.append(batch_latency)
@@ -196,7 +239,7 @@ def run_benchmarks(model_id: str,
     )
     
     # Initialize model
-    llm = initialize_model(model_id, quantization)
+    model, tokenizer, device = initialize_model(model_id, quantization)
     
     # Run benchmarks for each batch size
     results = []
@@ -208,7 +251,7 @@ def run_benchmarks(model_id: str,
     for batch_size in batch_sizes:
         print(f"\n[Batch Size: {batch_size}]")
         
-        metrics = benchmark_batch_size(llm, prompts, batch_size)
+        metrics = benchmark_batch_size(model, tokenizer, device, prompts, batch_size)
         metrics['quantization'] = quantization
         metrics['model_id'] = model_id
         
