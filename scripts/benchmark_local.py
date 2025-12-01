@@ -29,8 +29,9 @@ def load_test_data(dataset_name: str = "codefactory4791/amazon_test",
     """
     print(f"Loading dataset: {dataset_name} (split={split})")
     
-    dataset = load_dataset(dataset_name)
-    df = dataset[split].to_pandas()
+    # Only download the test split
+    dataset = load_dataset(dataset_name, split=split)
+    df = dataset.to_pandas()
     
     # Rename columns if needed
     if 'query' in df.columns and 'label' in df.columns:
@@ -41,10 +42,20 @@ def load_test_data(dataset_name: str = "codefactory4791/amazon_test",
     
     if balance_lengths and num_samples:
         # Categorize by length (character count)
-        # Short: < 200 chars, Medium: 200-500 chars, Long: > 500 chars
+        # Short: < 300 chars, Medium: 300-800 chars, Long: > 800 chars
         df['length_category'] = 'medium'
-        df.loc[df['text_length'] < 200, 'length_category'] = 'short'
-        df.loc[df['text_length'] > 500, 'length_category'] = 'long'
+        df.loc[df['text_length'] < 300, 'length_category'] = 'short'
+        df.loc[df['text_length'] > 800, 'length_category'] = 'long'
+        
+        # Check available samples in each category
+        short_available = len(df[df['length_category'] == 'short'])
+        medium_available = len(df[df['length_category'] == 'medium'])
+        long_available = len(df[df['length_category'] == 'long'])
+        
+        print(f"  Available samples by length:")
+        print(f"    Short (< 300 chars): {short_available}")
+        print(f"    Medium (300-800 chars): {medium_available}")
+        print(f"    Long (> 800 chars): {long_available}")
         
         # Calculate samples per category (roughly 1/3 each)
         samples_per_category = num_samples // 3
@@ -59,22 +70,33 @@ def load_test_data(dataset_name: str = "codefactory4791/amazon_test",
             if len(cat_df) >= n_samples:
                 sampled = cat_df.sample(n=n_samples, random_state=42)
             else:
-                # If not enough samples in category, take all and adjust
+                # If not enough samples, take all available
                 sampled = cat_df
-                print(f"  Warning: Only {len(cat_df)} {category} samples available (requested {n_samples})")
+                if len(cat_df) > 0:
+                    print(f"  Warning: Only {len(cat_df)} {category} samples available (requested {n_samples})")
             
-            dfs.append(sampled)
+            if len(sampled) > 0:
+                dfs.append(sampled)
         
         # Combine and shuffle
-        df = pd.concat(dfs, ignore_index=True)
-        df = df.sample(frac=1, random_state=42).reset_index(drop=True)
-        
-        # Print distribution
-        print(f"  Sampled {len(df)} instances with length distribution:")
-        for category in ['short', 'medium', 'long']:
-            count = len(df[df['length_category'] == category])
-            avg_len = df[df['length_category'] == category]['text_length'].mean()
-            print(f"    {category.capitalize()}: {count} samples (avg {avg_len:.0f} chars)")
+        if dfs:
+            df = pd.concat(dfs, ignore_index=True)
+            df = df.sample(frac=1, random_state=42).reset_index(drop=True)
+            
+            # Print final distribution
+            print(f"  Sampled {len(df)} instances with length distribution:")
+            for category in ['short', 'medium', 'long']:
+                cat_data = df[df['length_category'] == category]
+                count = len(cat_data)
+                if count > 0:
+                    avg_len = cat_data['text_length'].mean()
+                    min_len = cat_data['text_length'].min()
+                    max_len = cat_data['text_length'].max()
+                    print(f"    {category.capitalize()}: {count} samples (avg {avg_len:.0f}, range {min_len:.0f}-{max_len:.0f} chars)")
+                else:
+                    print(f"    {category.capitalize()}: 0 samples")
+        else:
+            print(f"  Warning: No samples found in any length category")
     
     elif num_samples and num_samples < len(df):
         # Simple random sampling without balancing
