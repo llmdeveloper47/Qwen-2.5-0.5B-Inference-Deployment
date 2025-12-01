@@ -13,7 +13,7 @@ This repository provides an end-to-end solution for:
 5. Identifying optimal deployment settings for production use
 
 **Model Details:**
-- Base: Qwen 2.5-0.5B-Instruct
+- Base: Qwen 3-0.6B-Instruct
 - Task: Intent classification (23 categories)
 - Accuracy: 92% on test set
 - Model URL: https://huggingface.co/codefactory4791/intent-classification-qwen
