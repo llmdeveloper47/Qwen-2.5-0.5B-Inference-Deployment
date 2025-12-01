@@ -37,7 +37,7 @@ git clone https://github.com/llmdeveloper47/Qwen-2.5-0.5B-Inference-Deployment.g
 cd Qwen-2.5-0.5B-Inference-Deployment
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt --ignore-installed blinker
 ```
 
 **Step 3:** Configure credentials
