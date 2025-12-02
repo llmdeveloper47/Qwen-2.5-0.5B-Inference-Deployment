@@ -139,7 +139,7 @@ from transformers import AutoModelForSequenceClassification
 print('All imports work!')
 "
 
-# Run ONNX Runtime benchmark
+# Run FlashAttention + BitsAndBytes benchmark
 python scripts/benchmark_local.py \
   --quantization bitsandbytes \
   --use-flash-attention \
@@ -161,7 +161,7 @@ python scripts/benchmark_local.py \
 
 **Compare all methods:**
 ```bash
-python scripts/compare_results.py --quantizations none,bitsandbytes,none_onnx
+python scripts/compare_results.py --quantizations none,bitsandbytes,none_flash,bitsandbytes_flash
 ```
 
 **Note:** If you don't have a local GPU, skip to Phase 3.
@@ -399,7 +399,8 @@ Note: Actual results depend on GPU model, sequence lengths, and batch size.
 
 - `results/local_benchmarks/none/` - FP16 baseline results
 - `results/local_benchmarks/bitsandbytes/` - INT8 quantization results
-- `results/local_benchmarks/none_onnx/` - ONNX Runtime FP16 results
+- `results/local_benchmarks/none_flash/` - FP16 + FlashAttention results
+- `results/local_benchmarks/bitsandbytes_flash/` - INT8 + FlashAttention results
 - `results/comparison.csv` - Side-by-side comparison
 - `results/analysis/` - Detailed analysis and visualizations
 
@@ -455,7 +456,7 @@ Solution: pip install 'bitsandbytes>=0.43.2' --upgrade
 
 Cause: Requires pre-quantized model or specific setup
 
-Solution: Focus on FP16, ONNX Runtime, and BitsAndBytes quantization
+Solution: Focus on FP16, FlashAttention, and BitsAndBytes quantization
 
 **For detailed troubleshooting, see README.md "Troubleshooting" section**
 
