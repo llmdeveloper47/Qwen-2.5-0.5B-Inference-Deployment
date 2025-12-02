@@ -92,6 +92,28 @@ ONNX Runtime provides significant speedup through graph optimizations and operat
 # Install ONNX Runtime dependencies
 pip install optimum[onnxruntime-gpu] onnx onnxruntime-gpu
 
+
+pip uninstall torch torchvision torchaudio -y
+rm -rf /usr/local/lib/python3.12/dist-packages/torch*
+rm -rf ~/.cache/pip
+
+# Fresh install from PyTorch
+pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
+
+# Test torch ONLY (before anything else)
+python -c "import torch; print(f'Torch: {torch.__version__}')"
+
+# Test torchvision ONLY
+python -c "import torchvision; print(f'TorchVision: {torchvision.__version__}')"
+
+# If both work, test importing together
+python -c "
+import torch
+import torchvision
+from transformers import AutoModelForSequenceClassification
+print('All imports work!')
+"
+
 # Run ONNX Runtime benchmark
 python scripts/benchmark_local.py \
   --quantization none \
