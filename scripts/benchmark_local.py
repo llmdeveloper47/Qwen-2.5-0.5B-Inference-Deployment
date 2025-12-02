@@ -148,14 +148,14 @@ def initialize_model(model_id: str, quantization: str = "none",
     start = time.perf_counter()
     
     try:
-        # Enable FlashAttention if requested (must be done before model loading)
+        # Enable optimized attention if requested (must be done before model loading)
         if use_flash_attention:
-            # Enable FlashAttention backend for scaled_dot_product_attention
-            # This uses optimized CUDA kernels for attention computation
+            # Enable FlashAttention as primary, memory-efficient as fallback
+            # FlashAttention doesn't support attention masks, so we need fallback
             torch.backends.cuda.enable_flash_sdp(True)
-            torch.backends.cuda.enable_mem_efficient_sdp(False)
-            torch.backends.cuda.enable_math_sdp(False)
-            print(f"  Enabled FlashAttention via SDPA backend")
+            torch.backends.cuda.enable_mem_efficient_sdp(True)  # Fallback for padded sequences
+            torch.backends.cuda.enable_math_sdp(False)  # Disable slow math backend
+            print(f"  Enabled optimized SDPA backends (Flash + Memory-Efficient)")
         
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(model_id)
