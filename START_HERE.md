@@ -79,12 +79,7 @@ python scripts/benchmark_local.py \
   --no-balance-lengths
 ```
 
-**Step 6:** Test handler (Optional)
-```bash
-python scripts/test_local_handler.py
-```
-
-**Step 7:** FlashAttention Optimization (Recommended)
+**Step 6:** FlashAttention Optimization (Recommended)
 
 FlashAttention provides **6.3x speedup** through optimized attention kernels.
 
@@ -106,7 +101,7 @@ print(f'BitsAndBytes: {bitsandbytes.__version__}')
 "
 ```
 
-**Test FlashAttention + FP16:**
+**Step 7:** Test FlashAttention + FP16:**
 ```bash
 python scripts/benchmark_local.py \
   --quantization none \
@@ -116,7 +111,7 @@ python scripts/benchmark_local.py \
 ```
 Expected: 274 samples/s at batch 32 (6.3x faster than baseline)
 
-**Test FlashAttention + BitsAndBytes INT8:**
+**Step 8 :**Test FlashAttention + BitsAndBytes INT8:**
 ```bash
 python scripts/benchmark_local.py \
   --quantization bitsandbytes \
@@ -139,7 +134,7 @@ from transformers import AutoModelForSequenceClassification
 print('All imports work!')
 "
 
-# Run FlashAttention + BitsAndBytes benchmark
+**Step 9:** # Run FlashAttention + BitsAndBytes benchmark
 python scripts/benchmark_local.py \
   --quantization bitsandbytes \
   --use-flash-attention \
@@ -162,6 +157,11 @@ python scripts/benchmark_local.py \
 **Compare all methods:**
 ```bash
 python scripts/compare_results.py --quantizations none,bitsandbytes,none_flash,bitsandbytes_flash
+```
+
+**Step 6:** Test handler (Optional)
+```bash
+python scripts/test_local_handler.py
 ```
 
 **Note:** If you don't have a local GPU, skip to Phase 3.
