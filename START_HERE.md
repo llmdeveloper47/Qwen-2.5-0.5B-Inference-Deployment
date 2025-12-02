@@ -124,6 +124,9 @@ python scripts/benchmark_local.py \
 
 **Step 8:** FlashAttention + BitsAndBytes Benchmarks (Optional, Advanced)
 ```bash
+
+pip install accelerate
+
 python scripts/benchmark_local.py \
   --quantization bitsandbytes \
   --use-flash-attention \
