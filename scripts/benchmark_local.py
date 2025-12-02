@@ -174,8 +174,11 @@ def initialize_model(model_id: str, quantization: str = "none",
                     device_map="auto"
                 )
         else:
-            # No quantization - simple FP16 loading
-            model = AutoModelForSequenceClassification.from_pretrained(model_id)
+            # No quantization - load in FP16 for FlashAttention compatibility
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16 if use_flash_attention else None
+            )
             model = model.to(device)
         
         # Ensure model knows the pad token
